@@ -724,44 +724,6 @@ void logbookkonni_pi::SetDefaults(void)
       }
 }
 
-wxString logbookkonni_pi::StandardPath(void)
-{
-    wxStandardPathsBase& std_path = wxStandardPathsBase::Get();
-    wxString s = wxFileName::GetPathSeparator();
-
-#ifdef __WXMSW__
-    wxString stdPath  = std_path.GetConfigDir();
-#endif
-#ifdef __WXGTK__
-    wxString stdPath  = std_path.GetUserDataDir();
-#endif
-#ifdef __WXOSX__
-    wxString stdPath  = (std_path.GetUserConfigDir() + s + _T("opencpn"));
-#endif
-
-    stdPath += s + _T("plugins");
-    if (!wxDirExists(stdPath))
-      wxMkdir(stdPath);
-
-    stdPath += s + _T("logbook");
-
-#ifdef __WXOSX__
-    // Compatibility with pre-OCPN-4.2; move config dir to
-    // ~/Library/Preferences/opencpn if it exists
-    wxString oldPath = (std_path.GetUserConfigDir() + s + _T("plugins") + s + _T("logbook"));
-    if (wxDirExists(oldPath) && !wxDirExists(stdPath)) {
-	wxLogMessage("logbookkonni_pi: moving config dir %s to %s", oldPath, stdPath);
-	wxRenameFile(oldPath, stdPath);
-    }
-#endif
-
-    if (!wxDirExists(stdPath))
-      wxMkdir(stdPath);
-
-    stdPath += s; // is this necessary?
-    return stdPath;
-}
-
 wxBitmap *logbookkonni_pi::GetPlugInBitmap()
 {
       return _img_logbook_pi;
@@ -1455,7 +1417,30 @@ void logbookkonni_pi::loadLayouts(wxWindow *parent)
 	wxString path, sep;
 	sep = wxFileName::GetPathSeparator();
 
-	wxString data = StandardPath();
+	wxStandardPathsBase& std_path = wxStandardPathsBase::Get();
+#ifdef __WXMSW__
+	wxString stdPath  = std_path.GetConfigDir();
+#elif defined __WXGTK__
+	wxString stdPath  = std_path.GetUserDataDir();	
+#elif defined __WXOSX__
+	wxString stdPath  = std_path.GetUserConfigDir();
+#endif
+
+	wxString *pHome_Locn = new wxString();
+	pHome_Locn->Append(stdPath);
+	pHome_Locn->append(sep); ;
+
+	pHome_Locn->append(_T("plugins"));
+	pHome_Locn->append(sep);
+	if(!wxDir::Exists(*pHome_Locn))
+		wxMkdir(*pHome_Locn);
+
+	pHome_Locn->Append(_T("logbook"));
+	pHome_Locn->append(sep);
+	if(!wxDir::Exists(*pHome_Locn))
+		wxMkdir(*pHome_Locn);
+  
+	wxString data = *pHome_Locn;
 	data.Append(_T("data"));
 	data.append(sep);
 	if(!wxDir::Exists(data))

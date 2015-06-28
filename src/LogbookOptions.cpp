@@ -849,7 +849,7 @@ LogbookOptions::LogbookOptions( wxWindow* parent, Options* opt, logbookkonni_pi*
 	m_staticText72->Wrap( -1 );
 	fgSizer91->Add( m_staticText72, 0, wxALL, 5 );
 	
-	m_Weeks = new wxTextCtrl( m_panel16, wxID_ANY, _("Week(s)"), wxDefaultPosition, wxSize( 60,-1 ), 0 );
+	m_Weeks = new wxTextCtrl( m_panel16, wxID_ANY, _("Weeks(s)"), wxDefaultPosition, wxSize( 60,-1 ), 0 );
 	fgSizer91->Add( m_Weeks, 0, wxALL, 0 );
 	
 	m_staticText73 = new wxStaticText( m_panel16, wxID_ANY, _("Month "), wxDefaultPosition, wxDefaultSize, 0 );
@@ -1493,11 +1493,18 @@ void LogbookOptions::init()
 
 	if(log_pi->m_plogbook_window == NULL)
 	{
-		wxString stdPath;
-		stdPath = logbookkonni_pi::StandardPath();
-
+	wxStandardPathsBase& std_path = wxStandardPathsBase::Get();
+#ifdef __WXMSW__
+	wxString stdPath  = std_path.GetConfigDir();
+#endif
+#ifdef __WXGTK__
+	wxString stdPath  = std_path.GetUserDataDir();
+#endif
+#ifdef __WXOSX__
+	wxString stdPath  = std_path.GetUserConfigDir();   // should be ~/Library/Preferences	
+#endif
 		wxString sep = wxFileName::GetPathSeparator();
-		wxString data_locn = stdPath + _T("data") + sep + _T("logbook.txt");
+		wxString data_locn = stdPath+sep+_T("plugins")+sep+_T("logbook")+sep+_T("data")+sep+_T("logbook.txt");
 		if(wxFile::Exists(data_locn))
 		{
 			wxFileInputStream input( data_locn );
@@ -1943,7 +1950,7 @@ void LogbookOptions::OnCheckboxNoSeconds( wxCommandEvent& event )
 void LogbookOptions::OnButtonClickUninstall(wxCommandEvent& ev)
 {
 #ifdef __WXMSW__
-	wxStandardPathsBase& stdpath = wxStandardPathsBase::Get();
+	wxStandardPathsBase& stdpath = wxStandardPaths::Get();
 	wxString s = stdpath.GetPluginsDir();
 	wxString command = s+_T("\\plugins\\uninst_logbookkonni_pi.exe");
 

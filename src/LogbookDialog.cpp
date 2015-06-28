@@ -3089,7 +3089,9 @@ void LogbookDialog::OnMenuSelectionShutdown( wxCommandEvent& event )
 
 void LogbookDialog::clearDataDir()
 {
-	wxString data = Home_Locn;
+	wxString data = *pHome_Locn;
+	data.Append(_T("data"));
+	data.Append(wxFileName::GetPathSeparator());
 
 	wxString f = wxFindFirstFile(data+_T("*.tmp"));
 	while ( !f.empty() )
@@ -3709,12 +3711,38 @@ Backup Logbook(*.txt)|*.txt");
 		totalColumns += logGrids[i]->GetNumberCols();
 	}
 
-	data  = logbookkonni_pi::StandardPath();
+	wxStandardPathsBase& std_path = wxStandardPathsBase::Get();
+#ifdef __WXMSW__
+	wxString stdPath  = std_path.GetConfigDir();
+#endif
+#ifdef __WXGTK__
+	wxString stdPath  = std_path.GetUserDataDir();
+#endif
+#ifdef __WXOSX__
+	wxString stdPath  = std_path.GetUserConfigDir();   // should be ~/Library/Preferences	
+#endif
+
+    basePath = stdPath;
+    appendOSDirSlash(&basePath);
+	pHome_Locn = new wxString();
+	pHome_Locn->Append(stdPath);
+	appendOSDirSlash(pHome_Locn) ;
+
+	pHome_Locn->append(_T("plugins"));
+	appendOSDirSlash(pHome_Locn);
+	if(!wxDir::Exists(*pHome_Locn))
+		wxMkdir(*pHome_Locn);
+
+	pHome_Locn->Append(_T("logbook"));
+	appendOSDirSlash(pHome_Locn);
+	bool u = false;
+	if(!wxDir::Exists(*pHome_Locn))
+		u = wxMkdir(*pHome_Locn);
+
+	data  = *pHome_Locn;
 	data.Append(_T("data"));
 	appendOSDirSlash(&data) ;
-    Home_Locn = data;
-
-    if(!wxDir::Exists(data))
+	if(!wxDir::Exists(data))
 		wxMkdir(data);
 
 	layoutHTML = data;
@@ -6784,54 +6812,27 @@ void LogbookDialog::setDatePattern()
 		if(s.at(i) < '0' || s.at(i) > '9')
 			LogbookDialog::dateSeparator = s.at(i);
 
-	if(s.Length() > 8)  // Format for locale year can be 2 digits or 4 digits.
-	{
-		int i = 0;
-		if(s.SubString(i,1) == _T("14"))
-			{ LogbookDialog::datePattern = _T("dd") + wxString(dateSeparator); i += 3; }
-		if(s.SubString(i,1) == _T("12"))
-			{ LogbookDialog::datePattern = _T("mm") + wxString(dateSeparator); i += 3; }
-		if(s.SubString(i,3) == _T("2011"))
-			{ LogbookDialog::datePattern = _T("yyyy") + wxString(dateSeparator); i += 5; }
+	int i = 0;
+	if(s.SubString(i,1) == _T("14"))
+		{ LogbookDialog::datePattern = _T("dd") + wxString(dateSeparator); i += 3; }
+	if(s.SubString(i,1) == _T("12"))
+		{ LogbookDialog::datePattern = _T("mm") + wxString(dateSeparator); i += 3; }
+	if(s.SubString(i,3) == _T("2011"))
+		{ LogbookDialog::datePattern = _T("yyyy") + wxString(dateSeparator); i += 5; }
 
-		if(s.SubString(i,i+1) == _T("14"))
-			{ LogbookDialog::datePattern += _T("dd") + wxString(dateSeparator);  i += 3; }
-		if(s.SubString(i,i+1) == _T("12"))
-			{ LogbookDialog::datePattern += _T("mm") + wxString(dateSeparator);  i += 3; }
-	    if(s.SubString(i,i+3) == _T("2011"))
-			{ LogbookDialog::datePattern += _T("yyyy") + wxString(dateSeparator);  i += 5; }
+	if(s.SubString(i,i+1) == _T("14"))
+		{ LogbookDialog::datePattern += _T("dd") + wxString(dateSeparator);  i += 3; }
+	if(s.SubString(i,i+1) == _T("12"))
+		{ LogbookDialog::datePattern += _T("mm") + wxString(dateSeparator);  i += 3; }
+    if(s.SubString(i,i+3) == _T("2011"))
+		{ datePattern += _T("yyyy") + wxString(dateSeparator);  i += 5; }
 
-		if(s.SubString(i,i+1) == _T("14"))
-			{ LogbookDialog::datePattern += _T("dd");  i += 3; }
-		if(s.SubString(i,i+1) == _T("12"))
-			{ LogbookDialog::datePattern += _T("mm");  i += 3; }
-	    if(s.SubString(i,i+3) == _T("2011"))
-			{ LogbookDialog::datePattern += _T("yyyy");  i += 5; }
-	}
-	else
-	{
-		int i = 0;
-		if(s.SubString(i,1) == _T("14"))
-			{ LogbookDialog::datePattern = _T("dd") + wxString(dateSeparator); i += 3; }
-		if(s.SubString(i,1) == _T("12"))
-			{ LogbookDialog::datePattern = _T("mm") + wxString(dateSeparator); i += 3; }
-		if(s.SubString(i,1) == _T("11"))
-			{ LogbookDialog::datePattern = _T("yyyy") + wxString(dateSeparator); i += 3; }
-
-		if(s.SubString(i,i+1) == _T("14"))
-			{ LogbookDialog::datePattern += _T("dd") + wxString(dateSeparator);  i += 3; }
-		if(s.SubString(i,i+1) == _T("12"))
-			{ LogbookDialog::datePattern += _T("mm") + wxString(dateSeparator);  i += 3; }
-	    if(s.SubString(i,i+1) == _T("11"))
-			{ LogbookDialog::datePattern += _T("yyyy") + wxString(dateSeparator);  i += 3; }
-
-		if(s.SubString(i,i+1) == _T("14"))
-			{ LogbookDialog::datePattern += _T("dd");  i += 3; }
-		if(s.SubString(i,i+1) == _T("12"))
-			{ LogbookDialog::datePattern += _T("mm");  i += 3; }
-	    if(s.SubString(i,i+1) == _T("11"))
-			{ LogbookDialog::datePattern += _T("yyyy");  i += 3; }
-	}
+	if(s.SubString(i,i+1) == _T("14"))
+		{ LogbookDialog::datePattern += _T("dd");  i += 3; }
+	if(s.SubString(i,i+1) == _T("12"))
+		{ LogbookDialog::datePattern += _T("mm");  i += 3; }
+    if(s.SubString(i,i+3) == _T("2011"))
+		{ LogbookDialog::datePattern += _T("yyyy");  i += 5; }
 }
 
 ////////////////////////////////////////////////////////////
@@ -7439,9 +7440,9 @@ void SelectLogbook::OnInit(wxInitDialogEvent& ev)
 
     	m_grid13->SetSelectionMode(wxGrid::wxGridSelectRows);
 
-	unsigned int i = wxDir::GetAllFiles(path,&files,_T("*logbook.txt"),wxDIR_FILES);
+	wxDir::GetAllFiles(path,&files,_T("*logbook.txt"),wxDIR_FILES);
 
-	for ( i = 0; i < files.Count(); i++)
+	for(unsigned int i = 0; i < files.Count(); i++)
 	{
 		wxFileName fn(files[i]);
 		filename = fn.GetName();
@@ -8071,7 +8072,9 @@ void ColdFinger::init()
 	it = imageList->Add(wxBitmap (xmblue));
 	m_treeCtrl3->SetImageList(imageList);
 
-	dataPath = dialog->Home_Locn;
+	dataPath = *(dialog->pHome_Locn);
+	dataPath += _T("data");
+	dataPath += wxFileName::GetPathSeparator();
 	dataPath += _T("Textblocks.xml");
 
 	loadTextBlocks();
