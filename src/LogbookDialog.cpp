@@ -6812,27 +6812,55 @@ void LogbookDialog::setDatePattern()
 		if(s.at(i) < '0' || s.at(i) > '9')
 			LogbookDialog::dateSeparator = s.at(i);
 
-	int i = 0;
-	if(s.SubString(i,1) == _T("14"))
-		{ LogbookDialog::datePattern = _T("dd") + wxString(dateSeparator); i += 3; }
-	if(s.SubString(i,1) == _T("12"))
-		{ LogbookDialog::datePattern = _T("mm") + wxString(dateSeparator); i += 3; }
-	if(s.SubString(i,3) == _T("2011"))
-		{ LogbookDialog::datePattern = _T("yyyy") + wxString(dateSeparator); i += 5; }
 
-	if(s.SubString(i,i+1) == _T("14"))
-		{ LogbookDialog::datePattern += _T("dd") + wxString(dateSeparator);  i += 3; }
-	if(s.SubString(i,i+1) == _T("12"))
-		{ LogbookDialog::datePattern += _T("mm") + wxString(dateSeparator);  i += 3; }
-    if(s.SubString(i,i+3) == _T("2011"))
-		{ datePattern += _T("yyyy") + wxString(dateSeparator);  i += 5; }
+	if(s.Length() > 8)  // Format for locale year can be 2 digits or 4 digits.
+	{
+		int i = 0;
+		if(s.SubString(i,1) == _T("14"))
+			{ LogbookDialog::datePattern = _T("dd") + wxString(dateSeparator); i += 3; }
+		if(s.SubString(i,1) == _T("12"))
+			{ LogbookDialog::datePattern = _T("mm") + wxString(dateSeparator); i += 3; }
+		if(s.SubString(i,3) == _T("2011"))
+			{ LogbookDialog::datePattern = _T("yyyy") + wxString(dateSeparator); i += 5; }
 
-	if(s.SubString(i,i+1) == _T("14"))
-		{ LogbookDialog::datePattern += _T("dd");  i += 3; }
-	if(s.SubString(i,i+1) == _T("12"))
-		{ LogbookDialog::datePattern += _T("mm");  i += 3; }
-    if(s.SubString(i,i+3) == _T("2011"))
-		{ LogbookDialog::datePattern += _T("yyyy");  i += 5; }
+		if(s.SubString(i,i+1) == _T("14"))
+			{ LogbookDialog::datePattern += _T("dd") + wxString(dateSeparator);  i += 3; }
+		if(s.SubString(i,i+1) == _T("12"))
+			{ LogbookDialog::datePattern += _T("mm") + wxString(dateSeparator);  i += 3; }
+	    if(s.SubString(i,i+3) == _T("2011"))
+			{ LogbookDialog::datePattern += _T("yyyy") + wxString(dateSeparator);  i += 5; }
+
+		if(s.SubString(i,i+1) == _T("14"))
+			{ LogbookDialog::datePattern += _T("dd");  i += 3; }
+		if(s.SubString(i,i+1) == _T("12"))
+			{ LogbookDialog::datePattern += _T("mm");  i += 3; }
+	    if(s.SubString(i,i+3) == _T("2011"))
+			{ LogbookDialog::datePattern += _T("yyyy");  i += 5; }
+	}
+	else
+	{
+		int i = 0;
+		if(s.SubString(i,1) == _T("14"))
+			{ LogbookDialog::datePattern = _T("dd") + wxString(dateSeparator); i += 3; }
+		if(s.SubString(i,1) == _T("12"))
+			{ LogbookDialog::datePattern = _T("mm") + wxString(dateSeparator); i += 3; }
+		if(s.SubString(i,1) == _T("11"))
+			{ LogbookDialog::datePattern = _T("yyyy") + wxString(dateSeparator); i += 3; }
+
+		if(s.SubString(i,i+1) == _T("14"))
+			{ LogbookDialog::datePattern += _T("dd") + wxString(dateSeparator);  i += 3; }
+		if(s.SubString(i,i+1) == _T("12"))
+			{ LogbookDialog::datePattern += _T("mm") + wxString(dateSeparator);  i += 3; }
+	    if(s.SubString(i,i+1) == _T("11"))
+			{ LogbookDialog::datePattern += _T("yyyy") + wxString(dateSeparator);  i += 3; }
+
+		if(s.SubString(i,i+1) == _T("14"))
+			{ LogbookDialog::datePattern += _T("dd");  i += 3; }
+		if(s.SubString(i,i+1) == _T("12"))
+			{ LogbookDialog::datePattern += _T("mm");  i += 3; }
+	    if(s.SubString(i,i+1) == _T("11"))
+			{ LogbookDialog::datePattern += _T("yyyy");  i += 3; }
+	}
 }
 
 ////////////////////////////////////////////////////////////
