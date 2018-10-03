@@ -632,8 +632,12 @@ void Logbook::SetSentence( wxString &sentence )
                     if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("H")) {
             			sHumidity = wxString::Format( _T( "%3.1f " ),xdrdata );
                     }
-					// XDR Volume
+					// XDR Volume  MODIFIE
                     if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("V")) {
+						sVolume = wxString::Format( _T( "%4.2f " ),xdrdata );	
+						
+///////////////////////////////////////////////////////////////////////////////////////////////////////						                                			   
+				   /*if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("V")) {
 						tempopt = opt->vol.SubString( 0,0 ).Upper();
                         if (m_NMEA0183.Xdr.TransducerInfo[i].UnitOfMeasurement == _T("M")) {
                             xdrdata *= 1000;
@@ -650,7 +654,8 @@ void Logbook::SetSentence( wxString &sentence )
                         }
                         dVolume += xdrdata;
                         sVolume = wxString::Format( _T( "%4.2f " ),dVolume );
-                    }
+                    }  */
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////				
                 }
             }
         }
