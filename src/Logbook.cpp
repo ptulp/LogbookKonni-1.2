@@ -1797,10 +1797,10 @@ void Logbook::appendRow( bool showlastline, bool autoline )
         dialog->logGrids[1]->SetCellValue( lastRow,LogbookHTML::HYDRO,sHumidity );
     }
 
-    dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::FUEL,sVolume );
-    sVolume = wxEmptyString;
-    dVolume = 0;
-    getModifiedCellValue( 2, lastRow, 0, LogbookHTML::FUEL );
+    dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::FUELT,sVolume );
+   // sVolume = wxEmptyString;
+  //  dVolume = 0;
+ //   getModifiedCellValue( 2, lastRow, 0, LogbookHTML::FUEL );
 
     if ( bRPM1 )
     {
