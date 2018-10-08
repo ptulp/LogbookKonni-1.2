@@ -632,12 +632,8 @@ void Logbook::SetSentence( wxString &sentence )
                     if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("H")) {
             			sHumidity = wxString::Format( _T( "%3.1f " ),xdrdata );
                     }
-					// XDR Volume  MODIFIE
+					// XDR Volume
                     if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("V")) {
-						sVolume = wxString::Format( _T( "%4.2f " ),xdrdata );	
-						
-///////////////////////////////////////////////////////////////////////////////////////////////////////						                                			   
-				   /*if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("V")) {
 						tempopt = opt->vol.SubString( 0,0 ).Upper();
                         if (m_NMEA0183.Xdr.TransducerInfo[i].UnitOfMeasurement == _T("M")) {
                             xdrdata *= 1000;
@@ -654,8 +650,7 @@ void Logbook::SetSentence( wxString &sentence )
                         }
                         dVolume += xdrdata;
                         sVolume = wxString::Format( _T( "%4.2f " ),dVolume );
-                    }  */
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////				
+                    }
                 }
             }
         }
@@ -1798,9 +1793,9 @@ void Logbook::appendRow( bool showlastline, bool autoline )
     }
 
     dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::FUELT,sVolume );
-   // sVolume = wxEmptyString;
-  //  dVolume = 0;
- //   getModifiedCellValue( 2, lastRow, 0, LogbookHTML::FUEL );
+//    sVolume = wxEmptyString;
+//   dVolume = 0;
+//    getModifiedCellValue( 2, lastRow, 0, LogbookHTML::FUEL );
 
     if ( bRPM1 )
     {
