@@ -281,7 +281,7 @@ void logbookkonni_pi::SetPluginMessage( wxString &message_id, wxString &message_
             {
                 m_plogbook_window->maintenance->addLineBuyParts();
 
-                int lastRow = m_plogbook_window->m_gridMaintenanceBuyParts->GetRows()-1;
+                int lastRow = m_plogbook_window->m_gridMaintenanceBuyParts->GetNumberRows()-1;
 
                 m_plogbook_window->m_gridMaintenanceBuyParts->SetCellValue( lastRow,0,wxString::Format( _T( "%i" ),i ) );
                 m_plogbook_window->m_gridMaintenanceBuyParts->SetCellValue( lastRow,1,category );
@@ -306,7 +306,7 @@ void logbookkonni_pi::SetPluginMessage( wxString &message_id, wxString &message_
             startLogbook();
 
         m_plogbook_window->logbook->appendRow( true, true );
-        int lastRow = m_plogbook_window->m_gridGlobal->GetRows()-1;
+        int lastRow = m_plogbook_window->m_gridGlobal->GetNumberRows()-1;
 
         m_plogbook_window->m_gridGlobal->SetCellValue( lastRow,13,data.Item( _T( "Remarks" ) ).AsString() );
         m_plogbook_window->m_gridMotorSails->SetCellValue( lastRow,8,data.Item( _T( "MotorRemarks" ) ).AsString() );
@@ -615,7 +615,7 @@ void logbookkonni_pi::dialogDimmer( PI_ColorScheme cs,wxWindow* ctrl,wxColour co
             ( ( wxGrid* )win )->SetDefaultCellTextColour( uitext );
             ( ( wxGrid* )win )->SetLabelBackgroundColour( col );
             ( ( wxGrid* )win )->SetLabelTextColour( uitext );
-            ( ( wxGrid* )win )->SetDividerPen( wxPen( col ) );
+           // ( ( wxGrid* )win )->GetRowGridLinePen( wxPen( col ) );
             ( ( wxGrid* )win )->SetGridLineColour( gridline );
 
         }
@@ -941,8 +941,10 @@ void logbookkonni_pi::SaveConfig()
         pConf->Write ( _T ( "NavDegrees" ), opt->Deg );
         pConf->Write ( _T ( "NavMin" ), opt->Min );
         pConf->Write ( _T ( "NavSec" ), opt->Sec );
-        pConf->Write ( _T ( "NavDistance" ), opt->distance );
-        pConf->Write ( _T ( "NavSpeed" ), opt->speed );
+        pConf->Write ( _T ( "ShowDistance" ), opt->showDistance);
+		pConf->Write ( _T ("ShowDistanceInd"), opt->showDistanceChoice);
+		pConf->Write ( _T ("ShowBoatSpeedInd"), opt->showBoatSpeedchoice);
+        pConf->Write ( _T ( "showBoatSpeed" ), opt->showBoatSpeed );
         pConf->Write ( _T ( "NavMeter" ), opt->meter );
         pConf->Write ( _T ( "NavFeet" ), opt->feet );
         pConf->Write ( _T ( "NavFathom" ), opt->fathom );
@@ -1162,8 +1164,12 @@ void logbookkonni_pi::LoadConfig()
         pConf->Read ( _T ( "NavDegrees" ), &opt->Deg );
         pConf->Read ( _T ( "NavMin" ), &opt->Min );
         pConf->Read ( _T ( "NavSec" ), &opt->Sec );
-        pConf->Read ( _T ( "NavDistance" ), &opt->distance );
-        pConf->Read ( _T ( "NavSpeed" ), &opt->speed );
+
+        pConf->Read ( _T ( "ShowDistance" ), &opt->showDistance);
+        pConf->Read ( _T ( "showBoatSpeed" ), &opt->showBoatSpeed );
+		pConf->Read ( _T ("ShowDistanceInd"), &opt->showDistanceChoice);
+		pConf->Read ( _T ("ShowBoatSpeedInd"), &opt->showBoatSpeedchoice);
+
         pConf->Read ( _T ( "Baro" ), &opt->baro );
         pConf->Read ( _T ( "Temperature" ), &opt->temperature );
         pConf->Read ( _T ( "NavMeter" ), &opt->meter );
