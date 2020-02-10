@@ -422,6 +422,10 @@ TRANSDUCER_TYPE SENTENCE::TransducerType( int field_number ) const
     {
         return ( VolumeTransducer );
     }
+    else if ( field_data == _T( "J" ) )
+    {
+        return ( JaugeTransducer );	
+	}
     else
     {
         return ( TransducerUnknown );
@@ -604,6 +608,11 @@ const SENTENCE& SENTENCE::operator += ( TRANSDUCER_TYPE transducer )
 
         Sentence += _T( "V" );
         break;
+		
+    case JaugeTransducer:
+
+        Sentence += _T( "J" );
+        break;		
 
     case TransducerUnknown:
 

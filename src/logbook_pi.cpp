@@ -281,7 +281,7 @@ void logbookkonni_pi::SetPluginMessage( wxString &message_id, wxString &message_
             {
                 m_plogbook_window->maintenance->addLineBuyParts();
 
-                int lastRow = m_plogbook_window->m_gridMaintenanceBuyParts->GetRows()-1;
+                int lastRow = m_plogbook_window->m_gridMaintenanceBuyParts->GetNumberRows()-1;
 
                 m_plogbook_window->m_gridMaintenanceBuyParts->SetCellValue( lastRow,0,wxString::Format( _T( "%i" ),i ) );
                 m_plogbook_window->m_gridMaintenanceBuyParts->SetCellValue( lastRow,1,category );
@@ -306,7 +306,7 @@ void logbookkonni_pi::SetPluginMessage( wxString &message_id, wxString &message_
             startLogbook();
 
         m_plogbook_window->logbook->appendRow( true, true );
-        int lastRow = m_plogbook_window->m_gridGlobal->GetRows()-1;
+        int lastRow = m_plogbook_window->m_gridGlobal->GetNumberRows()-1;
 
         m_plogbook_window->m_gridGlobal->SetCellValue( lastRow,13,data.Item( _T( "Remarks" ) ).AsString() );
         m_plogbook_window->m_gridMotorSails->SetCellValue( lastRow,8,data.Item( _T( "MotorRemarks" ) ).AsString() );
@@ -522,18 +522,18 @@ void logbookkonni_pi::GetOriginalColors()
 {
     mcol = wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE );
     mcol1 = wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVEBORDER  );
-    muitext = wxColour( 0,0,0 );
-    mgridline = m_plogbook_window->m_gridGlobal->GetGridLineColour();
-    mudkrd = m_plogbook_window->m_gridGlobal->GetCellTextColour( 0,0 );
-    mback_color = wxColour( 255,255,255 );
-    mtext_color = wxColour( 0,0,0 );
+    muitext = wxColour( 188,3,54 );  //WAS( 0,0,0 ) RGE SOMBRE
+    mgridline = m_plogbook_window->m_gridGlobal->GetGridLineColour();  // WAS ROUGE SOMBRE 91 91
+    mudkrd = m_plogbook_window->m_gridGlobal->GetCellTextColour( 44,15 );  // BLEU ( 0,0 ) 170
+    mback_color = wxColour( 225,240,255 );   //BLEU TRES CLAIR WAS BLANC  ( 255,255,255 )
+    mtext_color = wxColour( 0,104,208 );   //  BLEU SOMBRE  WAS NOIR ( 0,0,0 ) GRIS SOMBRE EST 91,91,91
 }
 
 void logbookkonni_pi::SetOriginalColors()
 {
     col = mcol;
     col1 = mcol1;
-    gridline = mgridline;
+    gridline = mgridline; 	
     uitext = muitext;
     udkrd = mudkrd;
     back_color = mback_color;
@@ -550,6 +550,7 @@ void logbookkonni_pi::SetColorScheme( PI_ColorScheme cs )
         }
         else
         {
+			/*
             GetGlobalColor( _T( "DILG0" ),&col );   // Dialog Background white
             GetGlobalColor( _T( "DILG1" ),&col1 );  // Dialog Background
             GetGlobalColor( _T( "DILG2" ),&back_color ); // Control Background
@@ -557,13 +558,15 @@ void logbookkonni_pi::SetColorScheme( PI_ColorScheme cs )
             GetGlobalColor( _T( "UITX1" ),&uitext ); // Menu Text, derived from UINFF
             GetGlobalColor( _T( "UDKRD" ),&udkrd );
             GetGlobalColor( _T( "GREY2" ),&gridline );
+			*/
+            SetOriginalColors();	//  RAJOUTE		
         }
 
         if ( cs == 0 || cs == 1 )
-            m_plogbook_window->SetBackgroundColour( wxColour( 255,255,255 ) );
+            m_plogbook_window->SetBackgroundColour( wxColour( 225,240,255 ) );  // BLEU CLAIR WAS 255,255,255
         else
-            m_plogbook_window->SetBackgroundColour( col );
-
+           /*  m_plogbook_window->SetBackgroundColour( col );  */
+            m_plogbook_window->SetBackgroundColour( wxColour( 225,240,255 ) );  //  RAJOUTE
         m_plogbook_window->SetForegroundColour( uitext );
         dialogDimmer( cs,m_plogbook_window,col,col1,back_color,text_color,uitext,udkrd );
         m_plogbook_window->Refresh();
@@ -581,15 +584,14 @@ void logbookkonni_pi::dialogDimmer( PI_ColorScheme cs,wxWindow* ctrl,wxColour co
 
         if ( win->IsKindOf( CLASSINFO( wxListBox ) ) )
             if ( cs == PI_GLOBAL_COLOR_SCHEME_DAY || cs == PI_GLOBAL_COLOR_SCHEME_RGB )
-                ( ( wxListBox* )win )->SetBackgroundColour( wxNullColour );
+                ( ( wxListBox* )win )->SetBackgroundColour( wxColour( 225,240,255 ) );    //   was   SetBackgroundColour( wxNullColour );
             else
-                ( ( wxListBox* )win )->SetBackgroundColour( col1 );
+                ( ( wxListBox* )win )->SetBackgroundColour( wxColour( 225,240,255 ) );   //   was SetBackgroundColour( col1 );
 
         else if ( win->IsKindOf( CLASSINFO( wxChoice ) ) )
             if ( cs == PI_GLOBAL_COLOR_SCHEME_DAY || cs == PI_GLOBAL_COLOR_SCHEME_RGB )
-                ( ( wxChoice* )win )->SetBackgroundColour( wxColour( 255,255,255 ) );
-            else
-                ( ( wxChoice* )win )->SetBackgroundColour( col1 );
+                ( ( wxChoice* )win )->  SetBackgroundColour( wxColour( 225,240,255 ) );            else
+                ( ( wxChoice* )win )->SetBackgroundColour( wxColour( 225,240,255 ) );   //   was SetBackgroundColour( col1 );
 
         else if ( win->IsKindOf( CLASSINFO( wxRadioButton ) ) )
             if ( cs == PI_GLOBAL_COLOR_SCHEME_DAY || cs == PI_GLOBAL_COLOR_SCHEME_RGB )
@@ -600,22 +602,21 @@ void logbookkonni_pi::dialogDimmer( PI_ColorScheme cs,wxWindow* ctrl,wxColour co
         else if ( win->IsKindOf( CLASSINFO( wxNotebook ) ) )
         {
             if ( cs == PI_GLOBAL_COLOR_SCHEME_DAY || cs == PI_GLOBAL_COLOR_SCHEME_RGB )
-                ( ( wxNotebook* )win )->SetBackgroundColour( wxColour( 255,255,255 ) );
-            else
-                ( ( wxNotebook* )win )->SetBackgroundColour( col1 );
+                ( ( wxNotebook* )win )->  SetBackgroundColour( wxColour( 225,240,255 ) );            else
+                ( ( wxNotebook* )win )->SetBackgroundColour( wxColour( 225,240,255 ) );   //   was SetBackgroundColour( col1 );
             ( ( wxNotebook* )win )->SetForegroundColour( text_color );
         }
 
         else if ( win->IsKindOf( CLASSINFO( wxGrid ) ) )
         {
             if ( cs == PI_GLOBAL_COLOR_SCHEME_DAY || cs == PI_GLOBAL_COLOR_SCHEME_RGB )
-                ( ( wxGrid* )win )->SetDefaultCellBackgroundColour( wxColour( 255,255,255 ) );
+                ( ( wxGrid* )win )->SetDefaultCellBackgroundColour( wxColour( 225,240,255 ) );
             else
-                ( ( wxGrid* )win )->SetDefaultCellBackgroundColour( col1 );
+                ( ( wxGrid* )win )->SetDefaultCellBackgroundColour( wxColour( 225,240,255 ) );      //  was SetDefaultCellBackgroundColour( col1 );
             ( ( wxGrid* )win )->SetDefaultCellTextColour( uitext );
-            ( ( wxGrid* )win )->SetLabelBackgroundColour( col );
+            ( ( wxGrid* )win )->SetLabelBackgroundColour( wxColour( 225,240,255 ) );   //   was  SetLabelBackgroundColour( col );
             ( ( wxGrid* )win )->SetLabelTextColour( uitext );
-            ( ( wxGrid* )win )->SetDividerPen( wxPen( col ) );
+           // ( ( wxGrid* )win )->GetRowGridLinePen( wxPen( col ) );
             ( ( wxGrid* )win )->SetGridLineColour( gridline );
 
         }
@@ -625,11 +626,11 @@ void logbookkonni_pi::dialogDimmer( PI_ColorScheme cs,wxWindow* ctrl,wxColour co
             if ( cs == PI_GLOBAL_COLOR_SCHEME_DAY || cs == PI_GLOBAL_COLOR_SCHEME_RGB )
             {
                 ( ( wxButton* )win )->SetForegroundColour( wxNullColour );
-                ( ( wxButton* )win )->SetBackgroundColour( wxNullColour );
+                ( ( wxButton* )win )->SetBackgroundColour( wxColour( 225,240,255 ) );  // was SetBackgroundColour( wxNullColour );
             }
             else
             {
-                ( ( wxButton* )win )->SetBackgroundColour( col1 );
+                ( ( wxButton* )win )->SetBackgroundColour( wxColour( 225,240,255 ) );   // was SetBackgroundColour( col1 );
             }
 
         }
@@ -941,8 +942,10 @@ void logbookkonni_pi::SaveConfig()
         pConf->Write ( _T ( "NavDegrees" ), opt->Deg );
         pConf->Write ( _T ( "NavMin" ), opt->Min );
         pConf->Write ( _T ( "NavSec" ), opt->Sec );
-        pConf->Write ( _T ( "NavDistance" ), opt->distance );
-        pConf->Write ( _T ( "NavSpeed" ), opt->speed );
+        pConf->Write ( _T ( "ShowDistance" ), opt->showDistance);
+		pConf->Write ( _T ("ShowDistanceInd"), opt->showDistanceChoice);
+		pConf->Write ( _T ("ShowBoatSpeedInd"), opt->showBoatSpeedchoice);
+        pConf->Write ( _T ( "showBoatSpeed" ), opt->showBoatSpeed );
         pConf->Write ( _T ( "NavMeter" ), opt->meter );
         pConf->Write ( _T ( "NavFeet" ), opt->feet );
         pConf->Write ( _T ( "NavFathom" ), opt->fathom );
@@ -1162,8 +1165,12 @@ void logbookkonni_pi::LoadConfig()
         pConf->Read ( _T ( "NavDegrees" ), &opt->Deg );
         pConf->Read ( _T ( "NavMin" ), &opt->Min );
         pConf->Read ( _T ( "NavSec" ), &opt->Sec );
-        pConf->Read ( _T ( "NavDistance" ), &opt->distance );
-        pConf->Read ( _T ( "NavSpeed" ), &opt->speed );
+
+        pConf->Read ( _T ( "ShowDistance" ), &opt->showDistance);
+        pConf->Read ( _T ( "showBoatSpeed" ), &opt->showBoatSpeed );
+		pConf->Read ( _T ("ShowDistanceInd"), &opt->showDistanceChoice);
+		pConf->Read ( _T ("ShowBoatSpeedInd"), &opt->showBoatSpeedchoice);
+
         pConf->Read ( _T ( "Baro" ), &opt->baro );
         pConf->Read ( _T ( "Temperature" ), &opt->temperature );
         pConf->Read ( _T ( "NavMeter" ), &opt->meter );
@@ -1290,7 +1297,10 @@ void logbookkonni_pi::LoadConfig()
 
             opt->abrSails.Empty();
             opt->sailsName.Empty();
-            
+
+            opt->abrSails.SetCount( opt->numberSails );
+            opt->sailsName.SetCount( opt->numberSails );
+
             for ( int i = 0; i < opt->numberSails; i++ )
             {
                 opt->abrSails.Item( i ) = tkz.GetNextToken();

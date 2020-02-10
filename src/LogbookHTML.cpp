@@ -4,6 +4,8 @@
 #include "Logbook.h"
 #include "logbook_pi.h"
 #include "Options.h"
+//#include "CrewList.h"
+
 
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
@@ -137,14 +139,14 @@ void LogbookHTML::setPlaceholders()
     placeholders[_T( "LMOTOR1" )]=gridcols31;
     gridc gridcols32 = { 2,LogbookHTML::MOTOR1T};
     placeholders[_T( "MOTOR1T" )]=gridcols32;
-    placeholders[_T( "LMOTOR1T" )]=gridcols32;
+    placeholders[_T( "LMOTOR1T" )]=gridcols32; 
     gridc gridcols33 = { 2,LogbookHTML::FUEL};
     placeholders[_T( "FUEL" )]=gridcols33;
     placeholders[_T( "LFUEL" )]=gridcols33;
     gridc gridcols34 = { 2,LogbookHTML::FUELT};
     placeholders[_T( "FUELT" )]=gridcols34;
-    placeholders[_T( "LFUELT" )]=gridcols34;
-    gridc gridcols35 = { 2,LogbookHTML::GENE};
+    placeholders[_T( "LFUELT" )]=gridcols34;	
+    gridc gridcols35 = { 2,LogbookHTML::GENE};	
     placeholders[_T( "GENE" )]=gridcols35;
     placeholders[_T( "LGENE" )]=gridcols35;
     gridc gridcols36 = { 2,LogbookHTML::GENET};
@@ -162,30 +164,37 @@ void LogbookHTML::setPlaceholders()
     gridc gridcols40 = { 2,LogbookHTML::BANK2T };
     placeholders[_T( "BANK2T" )]=gridcols40;
     placeholders[_T( "LBANK2T" )]=gridcols40;
-    gridc gridcols41 = { 2,LogbookHTML::SAILS };
-    placeholders[_T( "SAILS" )]=gridcols41;
-    placeholders[_T( "LSAILS" )]=gridcols41;
-    gridc gridcols42 = { 2,LogbookHTML::REEF };
-    placeholders[_T( "REEF" )]=gridcols42;
-    placeholders[_T( "LREEF" )]=gridcols42;
-    gridc gridcols43 = { 2,LogbookHTML::WATERM };
-    placeholders[_T( "WATERM" )]=gridcols43;
-    placeholders[_T( "LWATERM" )]=gridcols43;
-    gridc gridcols44 = { 2,LogbookHTML::WATERMT };
-    placeholders[_T( "WATERMT" )]=gridcols44;
-    placeholders[_T( "LWATERMT" )]=gridcols44;
-    gridc gridcols45 = { 2,LogbookHTML::WATERMO };
-    placeholders[_T( "WATERMO" )]=gridcols45;
-    placeholders[_T( "LWATERMO" )]=gridcols45;
-    gridc gridcols46 = { 2,LogbookHTML::WATER };
-    placeholders[_T( "WATER" )]=gridcols46;
-    placeholders[_T( "LWATER" )]=gridcols46;
-    gridc gridcols47 = { 2,LogbookHTML::WATERT };
-    placeholders[_T( "WATERT" )]=gridcols47;
-    placeholders[_T( "LWATERT" )]=gridcols47;
-    gridc gridcols48 = { 2,LogbookHTML::MREMARKS };
-    placeholders[_T( "MREMARKS" )]=gridcols48;
-    placeholders[_T( "LMREMARKS" )]=gridcols48;
+	
+    gridc gridcols41 = { 2,LogbookHTML::JAUGE };
+    placeholders[_T( "JAUGE" )]=gridcols41;
+    placeholders[_T( "LJAUGE" )]=gridcols41;	
+    gridc gridcols42 = { 2,LogbookHTML::SAILS };
+    placeholders[_T( "SAILS" )]=gridcols42;
+    placeholders[_T( "LSAILS" )]=gridcols42;
+    gridc gridcols43 = { 2,LogbookHTML::REEF };
+    placeholders[_T( "REEF" )]=gridcols43;
+    placeholders[_T( "LREEF" )]=gridcols43;
+    gridc gridcols44 = { 2,LogbookHTML::WATERM };
+    placeholders[_T( "WATERM" )]=gridcols44;
+    placeholders[_T( "LWATERM" )]=gridcols44;
+    gridc gridcols45 = { 2,LogbookHTML::WATERMT };
+    placeholders[_T( "WATERMT" )]=gridcols45;
+    placeholders[_T( "LWATERMT" )]=gridcols45;
+    gridc gridcols46 = { 2,LogbookHTML::WATERMO };
+    placeholders[_T( "WATERMO" )]=gridcols46;
+    placeholders[_T( "LWATERMO" )]=gridcols46;
+    gridc gridcols47 = { 2,LogbookHTML::WATER };
+    placeholders[_T( "WATER" )]=gridcols47;
+    placeholders[_T( "LWATER" )]=gridcols47;
+    gridc gridcols48 = { 2,LogbookHTML::WATERT };
+    placeholders[_T( "WATERT" )]=gridcols48;
+    placeholders[_T( "LWATERT" )]=gridcols48;
+    gridc gridcols49 = { 2,LogbookHTML::MREMARKS };
+    placeholders[_T( "MREMARKS" )]=gridcols49;
+    placeholders[_T( "LMREMARKS" )]=gridcols49;
+	
+	
+	
 
     placeholdersboat[_T( "LLOGBOOK" )]     = parent->m_logbook->GetPageText( 0 );
     placeholdersboat[_T( "LFROM" )]        = _( "from" );
@@ -229,7 +238,7 @@ void LogbookHTML::setSelection()
 
     first = last = 0;
 
-    if ( parent->logGrids[0]->GetRows() == 0 ) return;
+    if ( parent->logGrids[0]->GetNumberRows() == 0 ) return;
 
     if ( parent->logGrids[parent->m_notebook8->GetSelection()]->IsSelection() )
     {
@@ -588,7 +597,7 @@ wxString LogbookHTML::replacePlaceholder( wxString html,wxString htmlHeader,int 
         case RPM2:
             html.Replace( wxT( "#RPM2#" ),Export::replaceNewLine( mode,g->GetCellValue( row,col ),false ),false );
             html.Replace( wxT( "#LRPM2#" ),Export::replaceNewLine( mode,g->GetColLabelValue( col ),true ),false );
-            break;
+            break;   
         case FUEL:
             html.Replace( wxT( "#FUEL#" ),Export::replaceNewLine( mode,g->GetCellValue( row,col ),false ),false );
             html.Replace( wxT( "#LFUEL#" ),Export::replaceNewLine( mode,g->GetColLabelValue( col ),true ),false );
@@ -597,7 +606,8 @@ wxString LogbookHTML::replacePlaceholder( wxString html,wxString htmlHeader,int 
             html.Replace( wxT( "#FUELT#" ),Export::replaceNewLine( mode,g->GetCellValue( row,col ),false ),false );
             html.Replace( wxT( "#LFUELT#" ),Export::replaceNewLine( mode,g->GetColLabelValue( col ),true ),false );
             break;
-        case GENE:
+
+		case GENE:
             html.Replace( wxT( "#GENE#" ),Export::replaceNewLine( mode,g->GetCellValue( row,col ),false ),false );
             html.Replace( wxT( "#LGENE#" ),Export::replaceNewLine( mode,g->GetColLabelValue( col ),true ),false );
             break;
@@ -621,6 +631,16 @@ wxString LogbookHTML::replacePlaceholder( wxString html,wxString htmlHeader,int 
             html.Replace( wxT( "#BANK2T#" ),Export::replaceNewLine( mode,g->GetCellValue( row,col ),false ),false );
             html.Replace( wxT( "#LBANK2T#" ),Export::replaceNewLine( mode,g->GetColLabelValue( col ),true ),false );
             break;
+        case JAUGE:
+            html.Replace( wxT( "#JAUGE#" ),Export::replaceNewLine( mode,g->GetCellValue( row,col ),false ),false );
+            html.Replace( wxT( "#LJAUGE#" ),Export::replaceNewLine( mode,g->GetColLabelValue( col ),true ),false );	
+            break;	
+	/*		
+        case NAME:
+            html.Replace( wxT( "#NAME#" ),Export::replaceNewLine( mode,g->GetCellValue( row,col ),false ),false );
+            html.Replace( wxT( "#LNAME#" ),Export::replaceNewLine( mode,g->GetColLabelValue( col ),true ),false );	
+            break;			
+	*/		
         case SAILS:
             html.Replace( wxT( "#SAILS#" ),Export::replaceNewLine( mode,g->GetCellValue( row,col ),false ),false );
             html.Replace( wxT( "#LSAILS#" ),Export::replaceNewLine( mode,g->GetColLabelValue( col ),true ),false );

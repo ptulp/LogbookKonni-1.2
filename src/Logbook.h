@@ -54,7 +54,10 @@ private:
     wxString	sPressure;
     wxString	sHumidity;
     wxString    sVolume;
+    wxString    sJauge;	
+    wxString    sReef;		
     wxString	sWindA;
+    wxString	sBft;	
     wxString	sWindT;
     wxDateTime	dtWindA;
     wxDateTime	dtWindT;
@@ -93,6 +96,7 @@ private:
     double		avgwindT;
     double		maxwindT;
     double      dVolume;
+//	long        dJauge;
     wxString	swindspeedsA;
     wxString	swindspeedsT;
 
@@ -119,7 +123,7 @@ private:
 public:
     enum fields { ROUTE,RDATE,RTIME,STATUS,WAKE,DISTANCE,DTOTAL,POSITION,COG,COW,SOG,SOW,DEPTH,REMARKS,
                   BARO,HYDRO,TEMPAIR,TEMPWATER,WIND,WSPD,WINDR,WSPDR,CURRENT,CSPD,WAVE,SWELL,WEATHER,CLOUDS,VISIBILITY,
-                  MOTOR,MOTORT,RPM1,MOTOR1,MOTOR1T,RPM2,FUEL,FUELT,SAILS,REEF,GENE,GENET,BANK1,BANK1T,BANK2,BANK2T,WATERM,WATERMT,WATERMO,WATER,WATERT,MREMARKS,ROUTEID,TRACKID
+                  MOTOR,MOTORT,RPM1,MOTOR1,MOTOR1T,RPM2,FUEL,FUELT,JAUGE,SAILS,REEF,GENE,GENET,BANK1,BANK1T,BANK2,BANK2T,WATERM,WATERMT,WATERMO,WATER,WATERT,MREMARKS,ROUTEID,TRACKID
                 };
 
     Options		*opt;

@@ -113,6 +113,9 @@ Logbook::Logbook( LogbookDialog* parent, wxString data, wxString layout, wxStrin
     rpmSentence = false;
     sVolume = wxEmptyString;
     dVolume = 0;
+	sJauge = wxEmptyString;		
+	sReef = wxEmptyString;	
+
 }
 
 Logbook::~Logbook( void )
@@ -126,7 +129,7 @@ void Logbook::setTrackToNewID( wxString target )
 
     wxDir dir;
     wxArrayString files;
-    dir.GetAllFiles( parent->data,&files,_T( "until*.txt" ),wxDIR_FILES );
+    dir.GetAllFiles( parent->data,&files,_T( "jusqu'au*.txt" ),wxDIR_FILES );
 
     for ( unsigned int i = 0; i < files.Count(); i++ )
     {
@@ -173,9 +176,28 @@ void Logbook::SetPosition( PlugIn_Position_Fix &pfix )
     else
         sLon = this->toSDMMOpenCPN( 2, pfix.Lon, true );
 
-    if ( pfix.nSats != 0 )
+    if ( pfix.FixTime != 0 )
     {
-        sSOG = wxString::Format( _T( "%5.2f %s" ), pfix.Sog, opt->speed.c_str() );
+        
+		double factor = 1;
+		double tspeed = 1;
+
+		switch (opt->showBoatSpeedchoice)
+		{
+		case 0:
+			factor = 1;
+			break;
+		case 1:
+			factor = 0.51444;
+			break;
+		case 2:
+			factor = 1.852;
+			break;
+		}
+
+		tspeed = pfix.Sog * factor;			
+		
+		sSOG = wxString::Format( _T( "%5.2f %s" ), tspeed , opt->showBoatSpeed.c_str() );
         sCOG = wxString::Format( _T( "%5.2f %s" ), pfix.Cog, opt->Deg.c_str() );
         SetGPSStatus( true );
     }
@@ -316,6 +338,8 @@ void Logbook::SetSentence( wxString &sentence )
         {
             if ( m_NMEA0183.Parse() )
             {
+				double factor = 1;
+				double tboatspeed = 1;
 				if ( m_NMEA0183.Rmc.IsDataValid == NTrue )
                 {
                 	SetGPSStatus( true );
@@ -323,8 +347,25 @@ void Logbook::SetSentence( wxString &sentence )
                                    	m_NMEA0183.Rmc.Position.Latitude.Northing,
                                    	m_NMEA0183.Rmc.Position.Longitude.Longitude,
                                    	m_NMEA0183.Rmc.Position.Longitude.Easting );
+
                 	if ( m_NMEA0183.Rmc.SpeedOverGroundKnots != 999.0 )
-                    	sSOG = wxString::Format( _T( "%5.2f %s" ), m_NMEA0183.Rmc.SpeedOverGroundKnots,opt->speed.c_str() );
+						switch (opt->showBoatSpeedchoice)
+						{
+						case 0:
+							factor = 1;
+							break;
+						case 1:							
+							factor = 0.51444;							
+							break;
+						case 2:
+							factor = 1.852;							
+							break;
+						}
+
+					tboatspeed = m_NMEA0183.Rmc.SpeedOverGroundKnots * factor;
+
+					sSOG = wxString::Format(_T("%5.2f %s"), tboatspeed, opt->showBoatSpeed.c_str());
+                    	
                 	if ( m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue != 999.0 )
                     	sCOG = wxString::Format( _T( "%5.2f%s" ), m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue, opt->Deg.c_str() );
                 	if ( m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue != 999.0 )
@@ -349,19 +390,37 @@ void Logbook::SetSentence( wxString &sentence )
         {
             if ( m_NMEA0183.Parse() )
             {
-                sSOW = wxString::Format( _T( "%5.2f %s" ), m_NMEA0183.Vhw.Knots,opt->speed.c_str() );
+				double factor = 1;
+				double tboatspeed = 1;
+				if ( m_NMEA0183.Vhw.Knots != 999.0 )
+					switch (opt->showBoatSpeedchoice)
+					{
+					case 0:
+						factor = 1;
+						break;
+					case 1:							
+						factor = 0.51444;							
+						break;
+					case 2:
+						factor = 1.852;							
+						break;
+					}
+
+					tboatspeed = m_NMEA0183.Vhw.Knots * factor;
+
+                sSOW = wxString::Format( _T( "%5.2f %s" ), tboatspeed, opt->showBoatSpeed.c_str() );
                 dtSOW = wxDateTime::Now();
                 bSOW = true;
             }
         }
-        else if ( m_NMEA0183.LastSentenceIDReceived == _T( "MWV" ) )
+        else if ( m_NMEA0183.LastSentenceIDReceived == _T( "MWV" ) )   /////////////////////////////////////////////////////////////
         {
             if ( m_NMEA0183.Parse() )
             {
                 double dWind = 0;
                 double factor = 1, twindspeed = 1;
                 
-                switch ( opt->showWindSpeedchoice  )
+                switch ( opt->showWindSpeedchoice  )        
                 {
                 case 0:
                     if ( m_NMEA0183.Mwv.WindSpeedUnits == 'N' )
@@ -389,6 +448,7 @@ void Logbook::SetSentence( wxString &sentence )
                     break;
                 }
                 twindspeed = m_NMEA0183.Mwv.WindSpeed * factor;
+		
                 
                 if ( m_NMEA0183.Mwv.Reference == _T( "T" ) )
                 {
@@ -426,9 +486,37 @@ void Logbook::SetSentence( wxString &sentence )
                     if ( maxwindA < twindspeed )
                         maxwindA = twindspeed;
                     avgwindA = ( avgwindA + twindspeed )/2;
-                    swindspeedsA = wxString::Format( _T( "%03.1f|%03.1f|%03.1f" ), minwindA, avgwindA, maxwindA );
-                }
-            }
+                    swindspeedsA = wxString::Format( _T( "%03.1f|%03.1f|%03.1f" ), minwindA, avgwindA, maxwindA );	
+						      
+				}			
+		
+                    if ( (dWind >= 0 && dWind < 30) || (dWind >= 330 && dWind <= 360) )
+                    {
+                        sReef = _T( "Vent Debout" );
+                    }
+                    else if ( (dWind >= 30 && dWind < 45) || (dWind >= 315 && dWind < 330) )
+                    {
+                        sReef = _T( "Pres" ); 
+                    }
+                    else if ( (dWind >= 45 && dWind < 60) || (dWind >= 300 && dWind < 315) )
+                    {
+                        sReef = _T( "Bon Plein" ); 
+                    }
+                    else if ( (dWind >= 60 && dWind < 120) || (dWind >= 240 && dWind < 300) )
+                    {
+                        sReef = _T( "Travers" );
+                    }
+                    else if ( (dWind >= 120 && dWind < 150) || (dWind >= 210 && dWind < 240) )
+                    {
+                        sReef = _T( "Largue" );
+                    }
+                    else if ( (dWind >= 150 && dWind < 180) || (dWind >= 180 && dWind < 210) )
+                    {
+                        sReef = _T( "Vent Arriere" );  
+                    }
+
+					
+            }					
         }
         else if ( m_NMEA0183.LastSentenceIDReceived == _T( "VWT" ) )
         {
@@ -603,7 +691,8 @@ void Logbook::SetSentence( wxString &sentence )
               * PressureTransducer = 'P',
               * FlowRateTransducer = 'R',
               * TachometerTransducer = 'T',
-              * VolumeTransducer = 'V'
+              * VolumeTransducer = 'V',
+			  * JaugeTransducer = 'J'						  
              */
 
             if (m_NMEA0183.Parse()) { 
@@ -632,7 +721,12 @@ void Logbook::SetSentence( wxString &sentence )
                     if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("H")) {
             			sHumidity = wxString::Format( _T( "%3.1f " ),xdrdata );
                     }
-					// XDR Volume
+                	// XDR Jauge	
+                    if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("J")) {
+            			//dJauge = xdrdata;
+						sJauge = wxString::Format( _T( " %3.0f\ L" ),xdrdata );
+                    }	
+					// XDR Volume					
                     if (m_NMEA0183.Xdr.TransducerInfo[i].TransducerType == _T("V")) {
 						tempopt = opt->vol.SubString( 0,0 ).Upper();
                         if (m_NMEA0183.Xdr.TransducerInfo[i].UnitOfMeasurement == _T("M")) {
@@ -902,9 +996,9 @@ void Logbook::newLogbook()
     wxString temp = fn.GetPath();
     dialog->appendOSDirSlash( &temp );
     wxString sn;
-    wxString ss = wxDateTime::Now().FormatISOTime();
-    ss.Replace( _T( ":" ),_T( "_" ) );
-    ss = wxString::Format( _T( "until_%s_%s_logbook.txt" ),wxDateTime::Now().FormatISODate().c_str(),ss.c_str() );
+    wxString ss = wxDateTime::Now().FormatTime();  //  was FormatISOTime
+  //  ss.Replace( _T( ":" ),_T( "_" ) );
+    ss = wxString::Format( _T( "jusqu'au %s_%s_LdB.txt" ),wxDateTime::Now().FormatDate().c_str(),ss.c_str() );   //  was FormatISOTime
     sn = temp+ss;
 
     wxCopyFile( data_locn,sn );
@@ -942,7 +1036,7 @@ void Logbook::newLogbook()
     {
         dialog->logGrids[0]->SetCellValue( 0,13,_( "Last line from Logbook\n" )+ss );
         dialog->logGrids[0]->SetCellValue( 0,6,dialog->logGrids[0]->GetCellValue( 0,6 ) );
-        wxString t = _T( "0.00 " )+opt->distance;
+        wxString t = _T( "0.00 " )+opt->showDistance;
         dialog->logGrids[0]->SetCellValue( 0,5,t );
     }
     else
@@ -1002,7 +1096,7 @@ void Logbook::loadSelectedData( wxString path )
     else
     {
         wxDateTime dt = dialog->getDateTo( path );
-        path = wxString::Format( _( "Old Logbook until %s" ),dt.FormatDate().c_str() );
+        path = wxString::Format( _( " jusqu'au %s" ),dt.FormatDate().c_str() );
         oldLogbook = true;
     }
     title = path;
@@ -1233,88 +1327,92 @@ void Logbook::loadData()
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::MOTORT,s );
                 break;
             case 30:
-                dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::FUEL,s );
+                dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::FUEL,s ); //
                 break;
             case 31:
-                dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::FUELT,s );
+                dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::FUELT,s );  // was FUELT
                 break;
             case 32:
+                dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::JAUGE,s );
+                break;	
+	        case 33:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::SAILS,s );
                 break;
-            case 33:
+            case 34:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::REEF,s );
                 break;
-            case 34:
+            case 35:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::WATER,s );
                 break;
-            case 35:
+            case 36:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::WATERT,s );
                 break;
-
-            case 36:
+            case 37:																			
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::MREMARKS,s );
                 break;
-            case 37:
+            case 38:
                 dialog->m_gridWeather->SetCellValue( row,LogbookHTML::HYDRO,s );
                 break;
-            case 38:
+            case 39:
                 dialog->m_gridWeather->SetCellValue( row,LogbookHTML::AIRTE,s );
                 break;
-            case 39:
+            case 40:
                 dialog->m_gridWeather->SetCellValue( row,LogbookHTML::WATERTE,s );
                 break;
-            case 40:
+            case 41:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::MOTOR1,s );
                 break;
-            case 41:
+            case 42:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::MOTOR1T,s );
                 break;
-            case 42:
+            case 43:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::GENE,s );
                 break;
-            case 43:
+            case 44:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::GENET,s );
                 break;
-            case 44:
+            case 45:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::BANK1,s );
                 break;
-            case 45:
+            case 46:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::BANK1T,s );
                 break;
-            case 46:
+            case 47:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::BANK2,s );
                 break;
-            case 47:
+            case 48:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::BANK2T,s );
                 break;
-            case 48:
+            case 49:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::WATERM,s );
                 break;
-            case 49:
+            case 50:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::WATERMT,s );
                 break;
-            case 50:
+            case 51:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::WATERMO,s );
                 break;
-            case 51:
+            case 52:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::ROUTEID,s );
                 break;
-            case 52:
+            case 53:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::TRACKID,s );
                 break;
-            case 53:
+            case 54:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::RPM1,s );
                 break;
-            case 54:
+            case 55:
                 dialog->m_gridMotorSails->SetCellValue( row,LogbookHTML::RPM2,s );
                 break;
-            case 55:
+            case 56:
                 dialog->m_gridWeather->SetCellValue( row,LogbookHTML::WINDR,s );
                 break;
-            case 56:
+            case 57:
                 dialog->m_gridWeather->SetCellValue( row,LogbookHTML::WSPDR,s );
                 //    int in =  0;
                 break;
+	
+				
             }
             c++;
         }
@@ -1612,6 +1710,7 @@ void Logbook::setCellAlign( int i )
     dialog->m_gridWeather->SetCellAlignment   ( i,LogbookHTML::WEATHER, wxALIGN_LEFT, wxALIGN_TOP );
     dialog->m_gridWeather->SetCellAlignment   ( i,LogbookHTML::CLOUDS, wxALIGN_LEFT, wxALIGN_TOP );
     dialog->m_gridWeather->SetCellAlignment   ( i,LogbookHTML::VISIBILITY, wxALIGN_LEFT, wxALIGN_TOP );
+    dialog->m_gridMotorSails->SetCellAlignment( i,LogbookHTML::JAUGE, wxALIGN_LEFT, wxALIGN_TOP );																									   
     dialog->m_gridMotorSails->SetCellAlignment( i,LogbookHTML::SAILS, wxALIGN_LEFT, wxALIGN_TOP );
     dialog->m_gridMotorSails->SetCellAlignment( i,LogbookHTML::REEF, wxALIGN_LEFT, wxALIGN_TOP );
     dialog->m_gridMotorSails->SetCellAlignment( i,LogbookHTML::MREMARKS, wxALIGN_LEFT, wxALIGN_TOP );
@@ -1695,10 +1794,17 @@ void Logbook::appendRow( bool showlastline, bool autoline )
         //	dialog->logGrids[0]->SetCellValue(lastRow,POSITION,dialog->logGrids[0]->GetCellValue(lastRow-1,POSITION));
         changeCellValue( lastRow, 0,0 );
         dialog->logGrids[0]->SetCellValue( lastRow,DTOTAL,dialog->logGrids[0]->GetCellValue( lastRow-1,DTOTAL ) );
+		
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
+	    dialog->logGrids[1]->SetCellValue( lastRow,LogbookHTML::WEATHER,dialog->logGrids[1]->GetCellValue( lastRow-1,LogbookHTML::WEATHER ) );
+        dialog->logGrids[1]->SetCellValue( lastRow,LogbookHTML::VISIBILITY,dialog->logGrids[1]->GetCellValue( lastRow-1,LogbookHTML::VISIBILITY ) );
+			
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////				
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::MOTORT,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::MOTORT ) );
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::MOTOR1T,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::MOTOR1T ) );
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::GENET,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::GENET ) );
-        dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::FUELT,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::FUELT ) );
+        dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::FUELT,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::FUELT ) ); 
+        dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::JAUGE,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::JAUGE ) );		
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::WATERT,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::WATERT ) );
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::WATERMT,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::WATERMT ) );
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::BANK1T,dialog->logGrids[2]->GetCellValue( lastRow-1,LogbookHTML::BANK1T ) );
@@ -1710,7 +1816,7 @@ void Logbook::appendRow( bool showlastline, bool autoline )
     {
         dialog->logGrids[0]->SetCellValue( lastRow,ROUTE,_( "unnamed Route" ) );
         if ( gpsStatus )
-            dialog->logGrids[0]->SetCellValue( lastRow,POSITION,sLat+sLon );
+        dialog->logGrids[0]->SetCellValue( lastRow,POSITION,sLat+sLon );
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::FUELT,opt->fuelTank.c_str() );
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::WATERT,opt->waterTank.c_str() );
         dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::BANK1T,opt->bank1.c_str() );
@@ -1774,7 +1880,7 @@ void Logbook::appendRow( bool showlastline, bool autoline )
     }
     else
     {
-        dialog->logGrids[1]->SetCellValue( lastRow,LogbookHTML::WSPD,sWindSpeedT );
+        dialog->logGrids[1]->SetCellValue( lastRow,LogbookHTML::WSPD,sWindSpeedT );  ////////////////////////////////////
         dialog->logGrids[1]->SetCellValue( lastRow,LogbookHTML::WINDR,sWindA );
         dialog->logGrids[1]->SetCellValue( lastRow,LogbookHTML::WSPDR,sWindSpeedA );
     }
@@ -1792,11 +1898,25 @@ void Logbook::appendRow( bool showlastline, bool autoline )
         dialog->logGrids[1]->SetCellValue( lastRow,LogbookHTML::HYDRO,sHumidity );
     }
 
-    dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::FUELT,sVolume );
-//    sVolume = wxEmptyString;
-//   dVolume = 0;
-//    getModifiedCellValue( 2, lastRow, 0, LogbookHTML::FUEL );
+    dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::FUEL,sVolume );
+    sVolume = wxEmptyString;
+    dVolume = 0;
+    getModifiedCellValue( 2, lastRow, 0, LogbookHTML::FUEL );
+	
+    dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::JAUGE,sJauge );
+    sJauge = wxEmptyString;
+    getModifiedCellValue( 2, lastRow, 0, LogbookHTML::JAUGE );	
+	
+    dialog->logGrids[2]->SetCellValue( lastRow,LogbookHTML::REEF,sReef );
+    sReef = wxEmptyString;
+    getModifiedCellValue( 2, lastRow, 0, LogbookHTML::REEF );	
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	
+	
     if ( bRPM1 )
     {
         if (	!opt->engine1Running )
@@ -2266,7 +2386,25 @@ void Logbook::checkDistance()
         acos( cos( fromlat )*cos( fromlon )*cos( tolat )*cos( tolon ) +
               cos( fromlat )*sin( fromlon )*cos( tolat )*sin( tolon ) + sin( fromlat )*sin( tolat ) ) * 3443.9;
 
-    if ( sm >= opt->dEverySM && !dialog->logbookPlugIn->eventsEnabled )
+	double factor = 1;
+	double tdistance = 1;
+
+	switch (opt->showDistanceChoice)
+	{
+	case 0:
+		factor = 1;
+		break;
+	case 1:
+		factor = 1852;
+		break;
+	case 2:
+		factor = 1.852;
+		break;
+	}
+
+	tdistance = sm * factor;
+	
+	if ( tdistance >= opt->dEverySM && !dialog->logbookPlugIn->eventsEnabled )
     {
         dialog->logbookTimerWindow->popUp();
         everySM = true;
@@ -2279,7 +2417,7 @@ void Logbook::checkDistance()
 wxString Logbook::calculateDistance( wxString fromstr, wxString tostr )
 {
     if ( ( fromstr.IsEmpty() || tostr.IsEmpty() ) || fromstr == tostr )
-        return wxString( _T( "0.00 " )+opt->distance );
+        return wxString( _T( "0.00 " )+opt->showDistance);
 
     wxString sLat, sLon, sLatto, sLonto;
     wxDouble fromlat,fromlon,tolat,tolon, sm;
@@ -2315,7 +2453,25 @@ wxString Logbook::calculateDistance( wxString fromstr, wxString tostr )
                cos( fromlat )*sin( fromlon )*cos( tolat )*sin( tolon ) + sin( fromlat )*sin( tolat ) ) * 3443.9;
     ////// code snippet from http://www2.nau.edu/~cvm/latlongdist.html#formats
 
-    wxString ret = wxString::Format( _T( "%.2f %s" ),sm,opt->distance.c_str() );
+	double factor = 1;
+	double tdistance = 1;
+
+	switch (opt->showDistanceChoice)
+	{
+	case 0:
+		factor = 1;
+		break;
+	case 1:
+		factor = 1852;
+		break;
+	case 2:
+		factor = 1.852;
+		break;
+	}		
+
+	tdistance = sm * factor;
+
+    wxString ret = wxString::Format( _T( "%.2f %s" ),tdistance,opt->showDistance.c_str() );
     ret.Replace( _T( "." ),dialog->decimalPoint );
     return ret;
 }
@@ -2596,9 +2752,9 @@ void  Logbook::getModifiedCellValue( int grid, int row, int selCol, int col )
     {
         s.Replace( _T( "," ),_T( "." ) );
 
-        s = wxString::Format( _T( "%.2f %s" ),wxAtof( s ),opt->distance.c_str() );
-
-        s.Replace( _T( "." ),dialog->decimalPoint );
+        s = wxString::Format( _T( "%.2f %s" ),wxAtof( s ),opt->showDistance.c_str() );	
+		
+		s.Replace( _T( "." ),dialog->decimalPoint );
         dialog->logGrids[grid]->SetCellValue( row,col,s );
 
         computeCell( grid, row, col, s, true );
@@ -2675,7 +2831,7 @@ void  Logbook::getModifiedCellValue( int grid, int row, int selCol, int col )
                 temp = dialog->logGrids[grid]->GetCellValue( i,5 );
                 temp.Replace( _T( "," ),_T( "." ) );
                 temp.ToDouble( &dist );
-                s= wxString::Format( _T( "%9.2f %s" ),distTotal+dist,opt->distance.c_str() );
+                s= wxString::Format( _T( "%9.2f %s" ),distTotal+dist,opt->showDistance.c_str() );
                 s.Replace( _T( "." ),dialog->decimalPoint );
                 dialog->logGrids[grid]->SetCellValue( i,6,s );
 
@@ -2719,9 +2875,9 @@ void  Logbook::getModifiedCellValue( int grid, int row, int selCol, int col )
         {
             s.Replace( _T( "," ),_T( "." ) );
 #ifdef __WXOSX__
-            s = wxString::Format( _T( "%2.2f %s" ),wxAtof( s ),( const wchar_t* )opt->speed.c_str() );
+            s = wxString::Format( _T( "%2.2f %s" ),wxAtof( s ),( const wchar_t* )opt->showBoatSpeed.c_str() );
 #else
-            s = wxString::Format( _T( "%2.2f %s" ),wxAtof( s ),opt->speed.c_str() );
+            s = wxString::Format( _T( "%2.2f %s" ),wxAtof( s ),opt->showBoatSpeed.c_str() );
 #endif
             s.Replace( _T( "." ),dialog->decimalPoint );
             dialog->logGrids[grid]->SetCellValue( row,col,s );
@@ -2838,7 +2994,7 @@ void  Logbook::getModifiedCellValue( int grid, int row, int selCol, int col )
         if ( s != _T( "" ) )
         {
             s.Replace( _T( "," ),_T( "." ) );
-            s = wxString::Format( _T( "%3.2f %s" ),wxAtof( s ),opt->speed.c_str() );
+            s = wxString::Format( _T( "%3.2f %s" ),wxAtof( s ),opt->showBoatSpeed.c_str() );
             s.Replace( _T( "." ),dialog->decimalPoint );
             dialog->logGrids[grid]->SetCellValue( row,col,s );
         }
@@ -3017,7 +3173,7 @@ void  Logbook::getModifiedCellValue( int grid, int row, int selCol, int col )
             tkz.GetNextToken().ToDouble( &b );
             div = a/b;
             if ( col == LogbookHTML::FUELT )
-                opt->fuelTank.ToLong( &capacity );
+                opt->fuelTank.ToLong( &capacity ); 
             else if ( col == LogbookHTML::BANK1T )
                 opt->bank1.ToLong( &capacity );
             else if ( col == LogbookHTML::BANK2T )
@@ -3178,7 +3334,7 @@ wxString Logbook::computeCell( int grid, int row, int col, wxString s, bool mode
     s.Replace( _T( "," ),_T( "." ) );
 
     if ( col == DISTANCE )
-        abrev = opt->distance;
+        abrev = opt->showDistance;
     else if ( col == LogbookHTML::MOTOR || col == LogbookHTML::MOTOR1 ||
               col == LogbookHTML::GENE || col == LogbookHTML::WATERM )
         abrev = opt->motorh;
@@ -3541,7 +3697,7 @@ bool Logbook::checkGPS( bool autoLine )
 
         }
         else if ( everySM && autoLine )
-            sLogText += opt->everySMText+opt->everySMAmount+opt->distance;
+            sLogText += opt->everySMText+opt->everySMAmount+opt->showDistance;
         else if ( ( dialog->timer->IsRunning() || opt->timerType != 0 ) && autoLine )
             sLogText += opt->ttext;
 
